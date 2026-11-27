@@ -1163,4 +1163,614 @@ HARDWARE & SISTEMA:
         prob: 'Probabilidade: 90%',
         question: 'Quando um programa em execução no espaço de usuário (userspace) precisa ler um arquivo no disco rígido, por que ele não acessa o controlador SATA/NVMe diretamente?',
         options: [
-          'Porque o acesso direto ao hardware é restrito ao Kernel (modo privilegiado); a aplicação deve solicitar o serviço por meio de uma System Call (padrão P
+          'Porque o acesso direto ao hardware é restrito ao Kernel (modo privilegiado); a aplicação deve solicitar o serviço por meio de uma System Call (padrão POSIX).',
+          'Porque o disco rígido só aceita comandos vindos da memória Cache L1.',
+          'Porque arquivos em disco são gerenciados exclusivamente pela placa de rede.',
+          'Porque o userspace já possui privilégio de root por padrão em todos os processos.'
+        ],
+        answer: 0,
+        fundamento: 'Para proteger a estabilidade e segurança do sistema, a CPU opera em dois modos (usuário e kernel). O Kernel detém controle exclusivo do hardware; aplicações solicitam operações de E/S, memória ou processos via Chamadas de Sistema (System Calls).',
+        source: 'Slides Fundamentos dos Sistemas Operacionais (Págs. 11–14: Kernel, Userspace e System Calls)'
+      },
+      {
+        topic: 'so',
+        badge: 'Linux CLI • Nanocurso Redes',
+        prob: 'Probabilidade: 89%',
+        question: 'Em distribuições Linux modernas (como Ubuntu 24.04), qual comando do pacote iproute2 deve ser usado para visualizar a tabela ARP (mapeamento entre endereços IP e endereços MAC na rede local)?',
+        code: '$ _________',
+        options: [
+          'ip neigh',
+          'lsblk -a',
+          'free -ht',
+          'ss -l'
+        ],
+        answer: 0,
+        fundamento: 'No Nanocurso de Linux do Prof. Valiante, destaca-se que comandos antigos (ifconfig, route, arp, netstat) foram substituídos pela suíte iproute2: ip addr (endereços), ip route (rotas), ip link (interfaces) e ip neigh (vizinhos / tabela ARP).',
+        source: 'Nanocurso de Linux v4.x (Pág. 1: Comandos de Rede)'
+      },
+      {
+        topic: 'redes',
+        badge: 'Redes • Encapsulamento & PDUs',
+        prob: 'Probabilidade: 94%',
+        question: 'Ao descer pela pilha de protocolos do Modelo Internet (5 camadas) no host transmissor, quais são os nomes corretos das Unidades de Dados de Protocolo (PDUs) nas camadas de Transporte, Rede e Enlace, respectivamente?',
+        options: [
+          'Quadro → Pacote → Segmento',
+          'Segmento → Pacote (Datagrama) → Quadro (Frame)',
+          'Mensagem → Bit → Quadro',
+          'Datagrama → Mensagem → Pacote'
+        ],
+        answer: 1,
+        fundamento: 'Na camada de Aplicação temos a Mensagem; na Transporte (TCP/UDP) o Segmento; na Rede (IP) o Pacote ou Datagrama; na Enlace (Ethernet/Wi-Fi) o Quadro (Frame); e na Física os Bits.',
+        source: 'Slides Redes de Computadores (Pág. 75: Resumão dos Modelos de Referência)'
+      },
+      {
+        topic: 'redes',
+        badge: 'Redes • Endereçamento IPv4 Privado',
+        prob: 'Probabilidade: 88%',
+        question: 'De acordo com a RFC 1918, qual dos endereços IPv4 abaixo NÃO pertence a um bloco reservado para redes privadas (intranets), sendo portanto um endereço público roteável na Internet?',
+        options: [
+          '10.25.140.12',
+          '172.20.10.5',
+          '192.168.100.1',
+          '172.35.10.5'
+        ],
+        answer: 3,
+        fundamento: 'Os três blocos privados da RFC 1918 são: 10.0.0.0/8 (10.0.0.0 a 10.255.255.255), 172.16.0.0/12 (172.16.0.0 a 172.31.255.255) e 192.168.0.0/16. O IP 172.35.10.5 está fora da faixa 172.16–172.31, logo é um IP público!',
+        source: 'Slides Redes de Computadores (Pág. 145: RFC 1918)'
+      },
+      {
+        topic: 'arquitetura',
+        badge: 'Arquitetura • Hierarquia de Memória',
+        prob: 'Probabilidade: 87%',
+        question: 'Sobre a memória Cache presente nos microprocessadores modernos, assinale a alternativa CORRETA:',
+        options: [
+          'É construída com tecnologia DRAM (dinâmica), sendo mais lenta e mais barata por bit que a memória principal.',
+          'É construída com tecnologia SRAM (estática), muito rápida, volátil e gerenciada de forma transparente pelo hardware para reduzir o gargalo de acesso à RAM.',
+          'É uma memória não volátil utilizada para armazenar permanentemente o sistema operacional.',
+          'Possui capacidade maior que os SSDs atuais, porém custo por bit inferior.'
+        ],
+        answer: 1,
+        fundamento: 'A Cache usa SRAM (Static RAM), que é extremamente rápida e cara, ficando dentro do chip da CPU (níveis L1, L2, L3) entre os registradores e a memória principal DRAM.',
+        source: 'Slides Arquitetura de Computadores (Pág. 12: Memória Cache)'
+      },
+      {
+        topic: 'arquitetura',
+        badge: 'Arquitetura • Clock e Período',
+        prob: 'Probabilidade: 82%',
+        question: 'Um processador opera com frequência de clock de 2,5 GHz (2,5 × 10⁹ ciclos por segundo). Qual é o período (T) de duração de um único ciclo de clock?',
+        options: [
+          '0,4 nanossegundos (0,4 × 10⁻⁹ s)',
+          '2,5 milissegundos (2,5 × 10⁻³ s)',
+          '4,0 microssegundos (4,0 × 10⁻⁶ s)',
+          '0,25 segundos'
+        ],
+        answer: 0,
+        fundamento: 'Pela fórmula T = 1 / f, temos T = 1 / (2,5 × 10⁹ Hz) = 0,4 × 10⁻⁹ s = 0,4 ns.',
+        source: 'Slides Arquitetura de Computadores (Págs. 18–19: Clock)'
+      },
+      {
+        topic: 'so',
+        badge: 'Sist. Operacionais • Estados do Processo',
+        prob: 'Probabilidade: 86%',
+        question: 'Durante seu ciclo de vida, um processo que estava utilizando a CPU solicita a leitura de um arquivo em um disco SSD lento. Para qual estado o Sistema Operacional move esse processo imediatamente?',
+        options: [
+          'Execução para Pronto',
+          'Execução para Espera / Bloqueado',
+          'Espera / Bloqueado diretamente para Execução',
+          'Término imediato com perda de PID'
+        ],
+        answer: 1,
+        fundamento: 'Quando um processo depende de uma operação de E/S (disco, rede) ou temporização, ele sai da CPU e vai para o estado de Espera/Bloqueado. Quando a E/S termina, ele volta para a fila de Pronto (e não direto para Execução).',
+        source: 'Slides Fundamentos dos Sistemas Operacionais (Págs. 30–31: Ciclo de Vida do Processo)'
+      },
+      {
+        topic: 'so',
+        badge: 'Sist. Operacionais • Memória Virtual',
+        prob: 'Probabilidade: 85%',
+        question: 'Na técnica de gerenciamento de memória virtual por paginação, como são denominados os blocos de tamanho fixo na memória virtual e os blocos correspondentes na memória física (RAM), respectivamente?',
+        options: [
+          'Segmento (Segment) e Setor (Sector)',
+          'Página (Page) e Moldura/Quadro de página (Frame)',
+          'Cluster e Trilha (Track)',
+          'Bytecode e Socket'
+        ],
+        answer: 1,
+        fundamento: 'Na paginação, o espaço de endereçamento virtual é dividido em Páginas (Pages) e a memória física (RAM) em Frames de mesmo tamanho, traduzidos em tempo real pela MMU (Memory Management Unit).',
+        source: 'Slides Fundamentos dos Sistemas Operacionais (Págs. 40–41: Gerenciamento da Memória Principal)'
+      },
+      {
+        topic: 'redes',
+        badge: 'Redes • Equipamentos & Camadas',
+        prob: 'Probabilidade: 91%',
+        question: 'Qual é a diferença fundamental de operação entre um Switch (comutador) Ethernet tradicional e um Roteador?',
+        options: [
+          'O Switch opera na Camada 3 (Rede) usando endereços IP; o Roteador opera na Camada 2 (Enlace) usando endereços MAC.',
+          'O Switch opera na Camada 2 (Enlace) encaminhando quadros com base em endereços MAC aprendidos na tabela de comutação; o Roteador opera na Camada 3 (Rede) encaminhando pacotes entre redes distintas usando endereços IP.',
+          'Ambos operam exclusivamente na Camada 1 repetindo sinais elétricos para todas as portas.',
+          'O Switch substitui completamente o DNS e o DHCP em redes WAN.'
+        ],
+        answer: 1,
+        fundamento: 'Switches são dispositivos de camada de enlace (examinam MAC e isolam domínios de colisão). Roteadores são dispositivos de camada de rede (examinam cabeçalhos IP e interligam sub-redes diferentes).',
+        source: 'Slides Redes de Computadores (Pág. 203: Switches vs. Routers)'
+      },
+      {
+        topic: 'redes',
+        badge: 'Redes • Protocolos TCP vs UDP',
+        prob: 'Probabilidade: 89%',
+        question: 'Por que aplicações como consultas DNS, chamadas de voz (VoIP) e jogos online em tempo real frequentemente utilizam o protocolo UDP em vez do TCP?',
+        options: [
+          'Porque o UDP garante entrega ordenada e retransmissão automática de todos os pacotes perdidos.',
+          'Porque o UDP não exige estabelecimento prévio de conexão (handshake) nem possui sobrecarga de controle de congestionamento/retransmissão, garantindo menor latência.',
+          'Porque o UDP criptografa nativamente todos os dados na camada de transporte.',
+          'Porque o UDP opera na camada física diretamente sobre fibra óptica.'
+        ],
+        answer: 1,
+        fundamento: 'O UDP oferece serviço de transporte mínimo (apenas multiplexação por portas e checksum simples), evitando o atraso do handshake de 3 vias e das retransmissões do TCP, ideal para tráfego sensível ao atraso (latência).',
+        source: 'Slides Redes de Computadores (Págs. 109–110 e 120: Serviços de Transporte)'
+      },
+      {
+        topic: 'nuvem',
+        badge: 'Cloud Computing • Modelos de Serviço',
+        prob: 'Probabilidade: 85%',
+        question: 'Uma empresa contrata máquinas virtuais na AWS EC2 (ou Azure Virtual Machines) e precisa instalar, atualizar e configurar por conta própria o sistema operacional Linux, o servidor web e o banco de dados. Qual modelo de nuvem ela está utilizando?',
+        options: [
+          'SaaS (Software as a Service)',
+          'PaaS (Platform as a Service)',
+          'IaaS (Infrastructure as a Service)',
+          'FaaS (Function as a Service)'
+        ],
+        answer: 2,
+        fundamento: 'No modelo IaaS, o provedor entrega infraestrutura virtualizada (compute, storage, rede), cabendo ao cliente gerenciar o Sistema Operacional, middleware, runtime e aplicações.',
+        source: 'Plano de Ensino & Material Computação em Nuvem (AWS EC2 / Azure)'
+      },
+      {
+        topic: 'nuvem',
+        badge: 'Cloud Computing • Multi-cloud vs Cross-cloud',
+        prob: 'Probabilidade: 82%',
+        question: 'Conforme abordado na ementa da disciplina, qual a diferença conceitual entre uma arquitetura Multi-cloud e uma Cross-cloud?',
+        options: [
+          'Multi-cloud significa usar apenas servidores físicos locais; Cross-cloud significa usar apenas a AWS.',
+          'Multi-cloud envolve a utilização de serviços de dois ou mais provedores de nuvem distintos (ex.: AWS e Azure) na organização; Cross-cloud vai além, integrando e orquestrando dados e cargas de trabalho que se comunicam diretamente entre essas nuvens.',
+          'São sinônimos exatos para backup em fita magnética LTO.',
+          'Cross-cloud proíbe o uso de containers Docker.'
+        ],
+        answer: 1,
+        fundamento: 'Multi-cloud reduz a dependência de um único fornecedor (vendor lock-in) usando múltiplas nuvens. Cross-cloud estabelece interoperabilidade e integração ativa entre serviços hospedados em nuvens diferentes.',
+        source: 'Plano de Ensino • Ementa (Arquitetura Multi-cloud e Cross-Cloud)'
+      },
+      {
+        topic: 'so',
+        badge: 'Linux CLI • Auditoria de Sockets',
+        prob: 'Probabilidade: 84%',
+        question: 'Você precisa verificar no terminal Linux quais processos estão escutando em portas TCP e UDP locais exibindo os números das portas (sem resolver nomes). Qual comando indicado no Nanocurso do professor realiza essa tarefa?',
+        code: '$ _________',
+        options: [
+          'ss -tuanp',
+          'lspci -v',
+          'uname -a',
+          'touch arq{1..3}.txt'
+        ],
+        answer: 0,
+        fundamento: 'No comando ss -tuanp: -t (TCP), -u (UDP), -a (all/todos os sockets), -n (números de porta em vez de nomes de serviço) e -p (exibe o processo/PID dono do socket).',
+        source: 'Nanocurso de Linux v4.x (Pág. 1: Investigando sockets com ss)'
+      },
+      {
+        topic: 'arquitetura',
+        badge: 'Arquitetura • Taxonomia de Flynn',
+        prob: 'Probabilidade: 79%',
+        question: 'Na Taxonomia de Flynn (1972) para organização de computadores paralelos, como são classificadas, respectivamente, uma GPU processando operações vetoriais/matriciais e um servidor Multicore SMP moderno?',
+        options: [
+          'SISD e MISD',
+          'SIMD (Single Instruction, Multiple Data) e MIMD (Multiple Instruction, Multiple Data)',
+          'MISD e SISD',
+          'MIMD e SIMD'
+        ],
+        answer: 1,
+        fundamento: 'GPUs aplicam uma mesma instrução sobre múltiplos dados simultaneamente (SIMD). Processadores Multicore/SMP e Clusters executam múltiplas instruções diferentes sobre múltiplos dados distintos (MIMD).',
+        source: 'Slides Arquitetura de Computadores (Págs. 70–75: Taxonomia de Flynn)'
+      },
+      {
+        topic: 'arquitetura',
+        badge: 'Arquitetura • DMA & E/S',
+        prob: 'Probabilidade: 80%',
+        question: 'Qual é a principal vantagem do mecanismo de DMA (Direct Memory Access) nas operações de Entrada e Saída de alto volume (como leitura de SSDs e placas de rede)?',
+        options: [
+          'Elimina a necessidade de memória RAM no computador.',
+          'Permite que o módulo de E/S transfira blocos de dados diretamente para/da memória principal sem intervenção contínua da CPU, que atua apenas no início e no fim da transferência.',
+          'Converte automaticamente discos magnéticos HDD em memória Cache L1.',
+          'Impede qualquer interrupção de hardware no sistema operacional.'
+        ],
+        answer: 1,
+        fundamento: 'Sem DMA, a CPU precisaria copiar palavra por palavra entre o controlador de E/S e a RAM. Com DMA, a CPU delega a transferência ao controlador DMA e fica livre para executar outros processos, recebendo uma interrupção apenas ao término.',
+        source: 'Slides Arquitetura de Computadores (Pág. 15: Operações de E/S - DMA)'
+      },
+      {
+        topic: 'redes',
+        badge: 'Redes • Satélites GEO vs LEO',
+        prob: 'Probabilidade: 78%',
+        question: 'Comparando satélites de comunicação geoestacionários (GEO, ~35.786 km de altitude) com constelações de órbita baixa (LEO, como Starlink a ~550 km), qual afirmação é VERDADEIRA?',
+        options: [
+          'Satélites GEO têm latência (RTT) muito menor (~30 ms) do que satélites LEO (~800 ms).',
+          'Satélites LEO orbitam muito mais próximos da Terra, oferecendo latência (RTT) bem menor (~30 ms contra ~600-800 ms do GEO), mas exigem dezenas/milhares de satélites em constelação para cobertura contínua.',
+          'Satélites LEO ficam parados em relação a um ponto fixo da Terra e apenas 3 cobrem o planeta inteiro.',
+          'Satélites GEO não sofrem atraso de propagação de sinal.'
+        ],
+        answer: 1,
+        fundamento: 'Por estarem a ~35.786 km, satélites GEO parecem estacionários e 3 cobrem quase toda a Terra, mas sofrem alto atraso de ida e volta (~270 ms só ida / ~600-800 ms RTT). Satélites LEO (550–1200 km) reduzem drasticamente a latência (~30 ms), mas movem-se rápido e exigem constelações.',
+        source: 'Slides Redes de Computadores (Págs. 57–58: Satélites GEO, MEO e LEO)'
+      },
+      {
+        topic: 'redes',
+        badge: 'Redes • VLANs e IEEE 802.1Q',
+        prob: 'Probabilidade: 81%',
+        question: 'Em uma rede local corporativa comutada, qual é o objetivo principal de configurar VLANs (Virtual LANs) em um switch gerenciável e qual padrão insere a etiqueta (tag) de VLAN nos quadros Ethernet?',
+        options: [
+          'Aumentar a velocidade física dos cabos UTP para 100 Gbps; padrão IEEE 802.11.',
+          'Segmentar uma mesma infraestrutura física de switches em múltiplos domínios de broadcast isolados por segurança e desempenho; padrão IEEE 802.1Q.',
+          'Substituir endereços IPv6 por endereços MAC de 128 bits; padrão RFC 1918.',
+          'Conectar diretamente cabos coaxiais a satélites GEO; padrão SMTP.'
+        ],
+        answer: 1,
+        fundamento: 'VLANs permitem isolar departamentos (ex.: Engenharia e Computação) no mesmo switch físico, contendo o tráfego de broadcast (ARP, DHCP). Quando VLANs atravessam múltiplos switches (portas trunk), usa-se o protocolo IEEE 802.1Q para etiquetar os quadros.',
+        source: 'Slides Redes de Computadores (Págs. 205–211: Virtual LANs)'
+      },
+      {
+        topic: 'so',
+        badge: 'Sist. Operacionais • Dispositivos & Linux',
+        prob: 'Probabilidade: 79%',
+        question: 'No Linux, os arquivos especiais de dispositivos ficam no diretório /dev e são divididos em duas grandes categorias pelo Kernel. Qual alternativa apresenta corretamente essa divisão?',
+        options: [
+          'Dispositivos de Bloco (ex.: SSDs, HDDs, /dev/sda, que transferem dados em blocos de tamanho fixo) e Dispositivos de Caractere (ex.: teclado, mouse, terminais, fluxo contínuo).',
+          'Dispositivos de Cache e Dispositivos de BIOS.',
+          'Dispositivos TCP e Dispositivos HTTP.',
+          'Dispositivos Root e Dispositivos Sudo.'
+        ],
+        answer: 0,
+        fundamento: 'O gerenciamento de E/S classifica dispositivos em Bloco (armazenamento com acesso aleatório em blocos, como /dev/sda) e Caractere (fluxo sequencial de bytes/caracteres, como teclado, porta serial e terminal).',
+        source: 'Slides Fundamentos dos Sistemas Operacionais (Págs. 45–46: Classificação de Dispositivos)'
+      },
+      {
+        topic: 'so',
+        badge: 'Linux CLI • DNS Local & Servidor Rápido',
+        prob: 'Probabilidade: 83%',
+        question: 'Segundo o Nanocurso de Linux, qual arquivo local permite associar manualmente nomes de host a endereços IP antes mesmo de consultar um servidor DNS externo, e qual comando Python sobe um servidor HTTP rápido na porta 80 para testes?',
+        options: [
+          '/etc/fstab e python3 -m pip install http',
+          '/etc/hosts e python3 -m http.server 80',
+          '/etc/netplan/01.yaml e python3 --start-apache',
+          '/proc/cpuinfo e python3 -m ssh.server 22'
+        ],
+        answer: 1,
+        fundamento: 'O arquivo /etc/hosts faz resolução estática local de nomes (enquanto /etc/resolv.conf aponta os servidores DNS). Já o comando python3 -m http.server 80 cria instantaneamente um servidor web no diretório atual para testar conectividade e portas.',
+        source: 'Nanocurso de Linux v4.x (Págs. 2–3: DNS e Servidor Web instantâneo)'
+      },
+      {
+        topic: 'redes',
+        badge: 'Redes • Protocolos HTTP & Status',
+        prob: 'Probabilidade: 80%',
+        question: 'Na comunicação Web via protocolo HTTP/HTTPS, qual é o significado correto das famílias de códigos de status 2xx, 3xx, 4xx e 5xx retornadas pelo servidor?',
+        options: [
+          '2xx = Erro do cliente; 3xx = Sucesso; 4xx = Erro do servidor; 5xx = Redirecionamento.',
+          '2xx = Sucesso (ex: 200 OK); 3xx = Redirecionamento (ex: 301 Moved); 4xx = Erro na requisição do cliente (ex: 404 Not Found); 5xx = Erro interno do servidor (ex: 500/503).',
+          '2xx = Apenas conexões UDP; 4xx = Apenas conexões IPv6.',
+          '3xx = Falha de hardware no switch; 5xx = Cabo desconectado.'
+        ],
+        answer: 1,
+        fundamento: '1xx (Informativo), 2xx (Sucesso: 200 OK, 204 No Content), 3xx (Redirecionamento: 301, 304 Not Modified), 4xx (Erro do Cliente: 403 Forbidden, 404 Not Found) e 5xx (Erro do Servidor: 500 Internal Server Error, 503 Service Unavailable).',
+        source: 'Slides Redes de Computadores (Pág. 101: Códigos de Status HTTP)'
+      },
+      {
+        topic: 'arquitetura',
+        badge: 'Arquitetura • Unidades Binárias vs Decimais',
+        prob: 'Probabilidade: 81%',
+        question: 'Um fabricante de SSD anuncia um disco de "1 TB" (base decimal), mas o sistema operacional exibe a capacidade em "TiB" (base binária). Qual é a relação correta entre essas unidades?',
+        options: [
+          '1 TB = 10⁹ bytes e 1 TiB = 2³⁰ bytes.',
+          '1 TB = 10¹² bytes (base 10) e 1 TiB = 2⁴⁰ bytes (base 2, tebibyte), fazendo com que o valor numérico em TiB pareça menor (~0,909 TiB).',
+          '1 TB e 1 TiB possuem exatamente a mesma quantidade de bytes.',
+          '1 KiB equivale a 1000 bytes exatos.'
+        ],
+        answer: 1,
+        fundamento: 'Prefixos SI (KB, MB, GB, TB) usam potências de 10 (10³, 10⁶, 10⁹, 10¹²). Prefixos binários IEC (KiB, MiB, GiB, TiB) usam potências de 2 (2¹⁰, 2²⁰, 2³⁰, 2⁴⁰).',
+        source: 'Slides Arquitetura de Computadores (Pág. 54: Unidades de Medida Binário vs Decimal)'
+      }
+    ];
+
+    let activeQuizTopic = 'todos';
+    let currentQuizList = [...quizDatabase];
+    let currentQuizIndex = 0;
+    let quizAnswers = {}; // { questionIdxInList: selectedOptionIndex }
+
+    function setQuizTopic(topic) {
+      activeQuizTopic = topic;
+      document.querySelectorAll('.qtopic-btn').forEach(btn => {
+        const match = btn.dataset.qtopic === topic;
+        btn.classList.toggle('active', match);
+        if (match) {
+          btn.classList.add('bg-blue-600', 'text-white');
+          btn.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+        } else {
+          btn.classList.remove('bg-blue-600', 'text-white');
+          btn.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+        }
+      });
+
+      currentQuizList = topic === 'todos'
+        ? [...quizDatabase]
+        : quizDatabase.filter(q => q.topic === topic);
+      currentQuizIndex = 0;
+      quizAnswers = {};
+      renderQuizQuestion();
+    }
+
+    function resetQuiz() {
+      currentQuizIndex = 0;
+      quizAnswers = {};
+      renderQuizQuestion();
+      showToast('Questionário reiniciado!', 'info');
+    }
+
+    function renderQuizQuestion() {
+      const total = currentQuizList.length;
+      const q = currentQuizList[currentQuizIndex];
+      const userChoice = quizAnswers[currentQuizIndex];
+      const isAnswered = userChoice !== undefined;
+
+      // Atualiza contadores
+      const answeredCount = Object.keys(quizAnswers).length;
+      let hits = 0;
+      Object.entries(quizAnswers).forEach(([idx, choice]) => {
+        if (currentQuizList[idx].answer === choice) hits++;
+      });
+      const accuracy = answeredCount > 0 ? Math.round((hits / answeredCount) * 100) : 0;
+
+      document.getElementById('quiz-counter').textContent = `${currentQuizIndex + 1} / ${total}`;
+      document.getElementById('quiz-hits').textContent = `${hits} / ${answeredCount}`;
+      document.getElementById('quiz-accuracy').textContent = `${accuracy}%`;
+
+      // Preenche card
+      document.getElementById('q-badge').textContent = q.badge;
+      document.getElementById('q-prob').textContent = q.prob;
+      document.getElementById('q-question').textContent = q.question;
+
+      const codeEl = document.getElementById('q-code');
+      if (q.code) {
+        codeEl.textContent = q.code;
+        codeEl.classList.remove('hidden');
+      } else {
+        codeEl.classList.add('hidden');
+      }
+
+      const letters = ['A', 'B', 'C', 'D'];
+      document.getElementById('q-options').innerHTML = q.options.map((opt, idx) => {
+        let btnClass = 'bg-slate-50 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700 hover:border-blue-500';
+        if (isAnswered) {
+          if (idx === q.answer) {
+            btnClass = 'bg-emerald-500/15 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold';
+          } else if (idx === userChoice) {
+            btnClass = 'bg-red-500/15 border-red-500 text-red-900 dark:text-red-200';
+          } else {
+            btnClass = 'opacity-50 bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800';
+          }
+        }
+
+        return `
+          <button onclick="selectQuizOption(${idx})" ${isAnswered ? 'disabled' : ''} class="w-full text-left p-3.5 rounded-xl border text-xs sm:text-sm transition flex items-start gap-3 ${btnClass}">
+            <span class="w-6 h-6 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 flex items-center justify-center text-xs font-extrabold shrink-0 mt-0.5">
+              ${letters[idx]}
+            </span>
+            <span class="leading-relaxed">${opt}</span>
+          </button>
+        `;
+      }).join('');
+
+      const expBox = document.getElementById('q-explanation');
+      if (isAnswered) {
+        const correct = userChoice === q.answer;
+        expBox.classList.remove('hidden');
+        document.getElementById('q-result-title').innerHTML = correct
+          ? '<span class="text-emerald-600 dark:text-emerald-400">✅ Resposta Correta!</span>'
+          : '<span class="text-red-500">❌ Atenção ao Fundamento:</span>';
+        document.getElementById('q-fundamento').textContent = q.fundamento;
+        document.getElementById('q-source').textContent = `📚 Fonte: ${q.source}`;
+      } else {
+        expBox.classList.add('hidden');
+      }
+    }
+
+    function selectQuizOption(optIndex) {
+      if (quizAnswers[currentQuizIndex] !== undefined) return;
+      quizAnswers[currentQuizIndex] = optIndex;
+      const isCorrect = optIndex === currentQuizList[currentQuizIndex].answer;
+      if (isCorrect) {
+        updateXP(20, 'Questão acertada!');
+      }
+      renderQuizQuestion();
+    }
+
+    function nextQuizQuestion() {
+      currentQuizIndex = (currentQuizIndex + 1) % currentQuizList.length;
+      renderQuizQuestion();
+    }
+
+    function prevQuizQuestion() {
+      currentQuizIndex = (currentQuizIndex - 1 + currentQuizList.length) % currentQuizList.length;
+      renderQuizQuestion();
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. JOGO DA MEMÓRIA CONCEITUAL (4 BARALHOS TEMÁTICOS)
+    // -------------------------------------------------------------------------
+    const memoryDecks = {
+      redes: [
+        { id: 1, term: 'DHCP (DORA)', def: 'Atribui IP, máscara, gateway e DNS dinamicamente' },
+        { id: 2, term: 'Protocolo ARP', def: 'Descobre o endereço MAC a partir de um IP na LAN' },
+        { id: 3, term: 'Switch (Camada 2)', def: 'Encaminha quadros Ethernet usando tabela de MACs' },
+        { id: 4, term: 'Roteador (Camada 3)', def: 'Interliga redes distintas usando endereços IP' },
+        { id: 5, term: 'Porta 443 / HTTPS', def: 'Tráfego Web criptografado sobre TLS/TCP' },
+        { id: 6, term: 'VLAN (IEEE 802.1Q)', def: 'Segmenta domínios de broadcast no mesmo switch' }
+      ],
+      arquitetura: [
+        { id: 1, term: 'RAID 0 (Striping)', def: 'Máxima velocidade, zero redundância (N discos)' },
+        { id: 2, term: 'RAID 1 (Mirroring)', def: 'Espelhamento 100% dos dados em pares de discos' },
+        { id: 3, term: 'RAID 5', def: 'Paridade distribuída (mín. 3 discos, tolera 1 falha)' },
+        { id: 4, term: 'DMA', def: 'Transfere dados Disco ↔ RAM sem travar a CPU' },
+        { id: 5, term: 'Memória Cache', def: 'SRAM ultrarrápida entre Registradores e RAM' },
+        { id: 6, term: 'SIMD (Flynn)', def: 'Uma instrução em múltiplos dados (GPUs/vetores)' }
+      ],
+      so_linux: [
+        { id: 1, term: 'System Call (POSIX)', def: 'Pedido formal do Userspace para o Kernel' },
+        { id: 2, term: 'ip neigh', def: 'Exibe a tabela ARP moderna no terminal Linux' },
+        { id: 3, term: 'ss -tuanp', def: 'Lista sockets TCP/UDP e portas ativas (novo netstat)' },
+        { id: 4, term: 'Paginação (MMU)', def: 'Mapeia Page (virtual) para Frame (RAM física)' },
+        { id: 5, term: 'Estado Bloqueado', def: 'Processo aguardando término de E/S ou timer' },
+        { id: 6, term: 'free -ht', def: 'Exibe uso de memória RAM, cache/buffer e Swap' }
+      ],
+      nuvem: [
+        { id: 1, term: 'Container (Docker)', def: 'Compartilha o Kernel do host; leve e portátil' },
+        { id: 2, term: 'Máquina Virtual (VM)', def: 'Emula hardware via Hypervisor + SO próprio' },
+        { id: 3, term: 'IaaS (ex: AWS EC2)', def: 'Nuvem entrega VM/rede; você gerencia SO e apps' },
+        { id: 4, term: 'PaaS', def: 'Nuvem gerencia SO/runtime; você sobe só o código' },
+        { id: 5, term: 'Multi-cloud', def: 'Uso de múltiplos provedores (AWS + Azure)' },
+        { id: 6, term: 'JVM (Bytecode)', def: 'Executa arquivos .class independentes de SO' }
+      ]
+    };
+
+    let memCards = [];
+    let flippedIndices = [];
+    let matchedIds = [];
+    let memMoves = 0;
+    let memLock = false;
+
+    function initMemoryGame() {
+      const deckKey = document.getElementById('memory-deck-select').value;
+      const pairs = memoryDecks[deckKey];
+      memCards = [];
+      pairs.forEach(p => {
+        memCards.push({ pairId: p.id, type: 'CONCEITO', text: p.term });
+        memCards.push({ pairId: p.id, type: 'FUNÇÃO', text: p.def });
+      });
+
+      // Embaralha (Fisher-Yates)
+      for (let i = memCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [memCards[i], memCards[j]] = [memCards[j], memCards[i]];
+      }
+
+      flippedIndices = [];
+      matchedIds = [];
+      memMoves = 0;
+      memLock = false;
+      renderMemoryBoard();
+    }
+
+    function renderMemoryBoard() {
+      document.getElementById('mem-pairs').textContent = `${matchedIds.length} / 6`;
+      document.getElementById('mem-moves').textContent = memMoves;
+
+      const grid = document.getElementById('memory-grid');
+      grid.innerHTML = memCards.map((card, idx) => {
+        const isFlipped = flippedIndices.includes(idx) || matchedIds.includes(card.pairId);
+        const isMatched = matchedIds.includes(card.pairId);
+        const badgeStyle = card.type === 'CONCEITO'
+          ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+          : 'bg-amber-500/15 text-amber-600 dark:text-amber-400';
+
+        return `
+          <div onclick="flipMemoryCard(${idx})" class="perspective-1000 h-32 sm:h-36 cursor-pointer select-none">
+            <div class="relative w-full h-full transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}">
+              <!-- Frente (Carta Virada para Baixo) -->
+              <div class="absolute inset-0 backface-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-slate-700 hover:border-blue-500 flex flex-col items-center justify-center p-3 shadow-md">
+                <span class="text-xl mb-1">🃏</span>
+                <span class="text-[11px] font-mono font-bold text-slate-400">Carta #${idx + 1}</span>
+              </div>
+              <!-- Verso (Conteúdo Revelado) -->
+              <div class="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl p-3 flex flex-col justify-between border-2 shadow-md ${
+                isMatched
+                  ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500'
+                  : 'bg-white dark:bg-slate-900 border-blue-500'
+              }">
+                <span class="self-start px-2 py-0.5 rounded text-[10px] font-extrabold ${badgeStyle}">
+                  ${card.type}
+                </span>
+                <p class="text-xs font-bold leading-snug text-center my-auto text-slate-800 dark:text-slate-100">
+                  ${card.text}
+                </p>
+                <span class="text-[10px] text-center font-mono ${isMatched ? 'text-emerald-500 font-bold' : 'text-transparent'}">
+                  ✓ Par formado
+                </span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function flipMemoryCard(idx) {
+      if (memLock) return;
+      const card = memCards[idx];
+      if (flippedIndices.includes(idx) || matchedIds.includes(card.pairId)) return;
+
+      flippedIndices.push(idx);
+      renderMemoryBoard();
+
+      if (flippedIndices.length === 2) {
+        memMoves++;
+        memLock = true;
+        const [firstIdx, secondIdx] = flippedIndices;
+        const firstCard = memCards[firstIdx];
+        const secondCard = memCards[secondIdx];
+
+        if (firstCard.pairId === secondCard.pairId) {
+          matchedIds.push(firstCard.pairId);
+          flippedIndices = [];
+          memLock = false;
+          updateXP(15, 'Par combinado no Jogo da Memória!');
+          renderMemoryBoard();
+          if (matchedIds.length === 6) {
+            showToast('🎉 Parabéns! Você completou todo o baralho!', 'success');
+          }
+        } else {
+          setTimeout(() => {
+            flippedIndices = [];
+            memLock = false;
+            renderMemoryBoard();
+          }, 1100);
+        }
+      }
+    }
+
+    function peekMemoryCards() {
+      if (memLock) return;
+      memLock = true;
+      const allIndices = memCards.map((_, i) => i);
+      flippedIndices = allIndices;
+      renderMemoryBoard();
+      setTimeout(() => {
+        flippedIndices = [];
+        memLock = false;
+        renderMemoryBoard();
+      }, 3000);
+    }
+
+    // -------------------------------------------------------------------------
+    // INICIALIZAÇÃO DA PÁGINA
+    // -------------------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('xp-value').textContent = `${userXP} XP`;
+      switchTab('radar');
+      renderRadarSection();
+      renderPlanSection();
+      filterContent('todos');
+      setQuizTopic('todos');
+      initMemoryGame();
+    });
+
+    window.addEventListener('resize', () => {
+      if (!document.getElementById('section-radar').classList.contains('hidden')) {
+        renderD3Chart();
+      }
+    });
+  </script>
+</body>
+</html>
