@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preparação Prova Final • Infraestrutura de TI (Prof. Valiante)</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- D3.js para visualização estatística de probabilidades -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <!-- Google Fonts: Inter e JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Ajustes de rolagem suave e prevenção de overflow horizontal */
+    html, body {
+      max-width: 100%;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    /* Estilização da barra de rolagem horizontal das abas */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Animação 3D para o Jogo da Memória */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .transform-style-3d {
+      transform-style: preserve-3d;
+      transition: transform 0.45s cubic-bezier(0.4, 0.2, 0.2, 1);
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+
+    /* Animação de entrada suave entre abas */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-tab {
+      animation: fadeSlideUp 0.25s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
+
+  <!-- Toast de Notificação (Substitui alert/confirm) -->
+  <div id="toast-container" class="fixed bottom-20 sm:bottom-6 right-4 left-4 sm:left-auto sm:w-96 z-50 pointer-events-none flex flex-col gap-2"></div>
+
+  <!-- Cabeçalho Fixo -->
+  <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-blue-500/20 shrink-0">
+          TI
+        </div>
+        <div class="truncate">
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base font-extrabold tracking-tight truncate">Infraestrutura de TI • Prova Final</h1>
+            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+              Prof. Valiante
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 truncate">Foco: Leitura Hoje (Qui) • Papel Amanhã (Sex) • Prova Segunda</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- Contador de XP / Progresso -->
+        <div id="xp-badge" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1.5">
+          <span>⚡</span>
+          <span id="xp-value">0 XP</span>
+        </div>
+
+        <!-- Botão Tema Claro/Escuro -->
+        <button onclick="toggleTheme()" aria-label="Alternar tema" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition border border-slate-200 dark:border-slate-700">
+          <span id="theme-icon">☀️</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navegação por Abas (Desktop/Tablet) -->
+    <nav class="max-w-5xl mx-auto px-4 overflow-x-auto no-scrollbar border-t border-slate-100 dark:border-slate-800/80">
+      <div class="flex items-center gap-1.5 py-2 min-w-max">
+        <button onclick="switchTab('radar')" data-tab="radar" class="tab-btn active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5">
+          <span>📊</span> Radar &amp; Estatísticas
+        </button>
+        <button onclick="switchTab('plano')" data-tab="plano" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5">
+          <span>✍️</span> Plano Hoje → Papel
+        </button>
+        <button onclick="switchTab('fundamentos')" data-tab="fundamentos" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5">
+          <span>🎬</span> Vídeos (&le;10m) &amp; Base
+        </button>
+        <button onclick="switchTab('quiz')" data-tab="quiz" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5">
+          <span>🎯</span> Quiz Prova (24)
+        </button>
+        <button onclick="switchTab('memoria')" data-tab="memoria" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5">
+          <span>🧠</span> Jogo da Memória
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Conteúdo Principal -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 pb-24">
+
+    <!-- =================================================================== -->
+    <!-- ABA 1: RADAR DA PROVA, PROBABILIDADES & PADRÃO DO PROFESSOR         -->
+    <!-- =================================================================== -->
+    <section id="section-radar" class="tab-section animate-tab space-y-6">
+      
+      <!-- Banner Estratégico -->
+      <div class="rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-slate-900 p-5 sm:p-6 text-white shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-2">
+            <span class="inline-block px-2.5 py-1 rounded-lg bg-white/15 text-xs font-bold tracking-wide uppercase">
+              Análise do Material &amp; Padrão Prof. Filippo Valiante
+            </span>
+            <h2 class="text-xl sm:text-2xl font-extrabold leading-tight">
+              O que tem maior probabilidade de cair na segunda-feira?
+            </h2>
+            <p class="text-sm text-blue-100 leading-relaxed max-w-2xl">
+              Cruzamos o <strong>Plano de Ensino</strong> (P1 40% + P2 40% + ADOs 20%), os <strong>360 slides oficiais</strong>, o <strong>Nanocurso de Linux</strong>, o simulador <strong>Filius</strong> e os materiais de <strong>Virtualização/Docker/Cloud</strong> do Blackboard.
+            </p>
+          </div>
+          <div class="bg-slate-950/40 backdrop-blur-sm border border-white/15 rounded-2xl p-4 shrink-0 text-center">
+            <div class="text-xs text-blue-200 font-semibold">Contagem Regressiva</div>
+            <div class="text-2xl font-extrabold text-amber-300 mt-0.5">4 Dias</div>
+            <div class="text-[11px] text-blue-100 mt-1">Qui (Ler) → Sex (Papel) → Seg (Prova)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico Estatístico D3 + Distribuição -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-base font-extrabold">Distribuição Probabilística da Prova</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Peso estimado por volume de slides, ênfase em aula e ADOs</p>
+            </div>
+            <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">100% Ementa</span>
+          </div>
+          
+          <!-- Container do Gráfico D3 -->
+          <div id="d3-chart-container" class="w-full"></div>
+
+          <!-- Barras Detalhadas -->
+          <div class="mt-4 space-y-3" id="probability-bars"></div>
+        </div>
+
+        <!-- DNA das Questões do Prof. Valiante -->
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-extrabold text-xs uppercase tracking-wider mb-1">
+              <span>🔍</span> Padrão das ADOs &amp; Provas
+            </div>
+            <h3 class="text-base font-extrabold mb-3">Como o Prof. Valiante cobra o conteúdo?</h3>
+            
+            <div class="space-y-3 text-sm">
+              <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/70">
+                <div class="font-bold text-blue-600 dark:text-blue-400 mb-1">1. Visão "Infraestrutura de TI" (Ponta a Ponta)</div>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Ele não cobra apenas definição solta: ele conecta <strong>Hardware → SO → Rede → Nuvem</strong>. Ex.: "Qual camada/protocolo atua quando um usuário digita uma URL?" (Síntese DHCP → ARP → DNS → TCP → HTTP).
+                </p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/70">
+                <div class="font-bold text-emerald-600 dark:text-emerald-400 mb-1">2. Comandos Linux Reais &amp; Modernos</div>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  No Nanocurso e nos slides ele destaca comandos atuais: <code class="font-mono text-emerald-500">ip addr</code>, <code class="font-mono text-emerald-500">ip route</code>, <code class="font-mono text-emerald-500">ip neigh</code>, <code class="font-mono text-emerald-500">ss -tuanp</code>, <code class="font-mono text-emerald-500">lscpu</code>, <code class="font-mono text-emerald-500">free -ht</code>, <code class="font-mono text-emerald-500">lsblk</code> — e avisa que <code class="font-mono">ifconfig/netstat</code> são legados!
+                </p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/70">
+                <div class="font-bold text-purple-600 dark:text-purple-400 mb-1">3. Comparações Arquiteturais Clássicas</div>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Adora questões comparando: <strong>VM vs Container (Docker)</strong>, <strong>TCP vs UDP</strong>, <strong>Switch (MAC) vs Roteador (IP)</strong>, <strong>RAID 0 vs 1 vs 5 vs 10</strong>, <strong>IaaS vs PaaS vs SaaS</strong> e <strong>Multi-cloud vs Cross-cloud</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="switchTab('quiz')" class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition shadow-md shadow-blue-600/20">
+            Treinar Agora no Quiz Estilo Prova →
+          </button>
+        </div>
+      </div>
+
+      <!-- Top 10 Tópicos de Altíssima Probabilidade -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 class="text-base font-extrabold">🔥 Top 10 Assuntos "Quase Certos" na Prova de Segunda</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Toque em cada tópico para abrir a cola rápida do que você precisa saber</p>
+          </div>
+          <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Probabilidade &gt; 80%</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="top-topics-grid"></div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ABA 2: PLANO DE ESTUDO ESTRATÉGICO (HOJE LER -> AMANHÃ PAPEL)        -->
+    <!-- =================================================================== -->
+    <section id="section-plano" class="tab-section hidden animate-tab space-y-6">
+      
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+        <h2 class="text-lg sm:text-xl font-extrabold mb-1">Cronograma Sob Medida: Hoje → Segunda-feira</h2>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+          Adaptado exatamente à sua rotina: <strong>hoje à noite</strong> sem papel (leitura leve, vídeos curtos e jogos no celular) e <strong>amanhã à tarde</strong> com foco total em escrita ativa no papel.
+        </p>
+
+        <!-- Barra de Progresso do Plano -->
+        <div class="mt-4 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+          <div class="flex justify-between items-center text-xs font-bold mb-1.5">
+            <span>Seu Progresso no Roteiro</span>
+            <span id="plan-progress-text" class="text-blue-600 dark:text-blue-400">0% concluído</span>
+          </div>
+          <div class="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div id="plan-progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cards das Fases de Estudo -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="study-phases-container"></div>
+
+      <!-- Fichas Prontas para Copiar à Mão Amanhã à Tarde -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span class="text-xs font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">✍️ Para Amanhã à Tarde (Sexta)</span>
+            <h3 class="text-base sm:text-lg font-extrabold">4 Folhas-Resumo para Escrever no Papel</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Escrever à mão ativa a memória motora e fixa tabelas de portas, camadas e RAID. Copie cada bloco para uma folha A4.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="paper-sheets-container"></div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ABA 3: VIDEOAULAS CURTAS (<=10 MIN) & FUNDAMENTOS VISUAIS           -->
+    <!-- =================================================================== -->
+    <section id="section-fundamentos" class="tab-section hidden animate-tab space-y-6">
+      
+      <!-- Filtro por Disciplina -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-extrabold">Videoaulas Rápidas (&le; 10 min) &amp; Fundamentos</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Filtre por área para assistir hoje à noite e revisar a teoria base</p>
+          </div>
+          <div class="flex flex-wrap gap-1.5" id="topic-filters">
+            <button onclick="filterContent('todos')" data-filter="todos" class="filter-chip active px-3 py-1.5 rounded-lg text-xs font-bold transition">Todos</button>
+            <button onclick="filterContent('arquitetura')" data-filter="arquitetura" class="filter-chip px-3 py-1.5 rounded-lg text-xs font-bold transition">Arquitetura</button>
+            <button onclick="filterContent('so')" data-filter="so" class="filter-chip px-3 py-1.5 rounded-lg text-xs font-bold transition">Sist. Operacionais</button>
+            <button onclick="filterContent('redes')" data-filter="redes" class="filter-chip px-3 py-1.5 rounded-lg text-xs font-bold transition">Redes</button>
+            <button onclick="filterContent('nuvem')" data-filter="nuvem" class="filter-chip px-3 py-1.5 rounded-lg text-xs font-bold transition">Nuvem &amp; Docker</button>
+            <button onclick="filterContent('linux')" data-filter="linux" class="filter-chip px-3 py-1.5 rounded-lg text-xs font-bold transition">Linux CLI</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grade de Vídeos Curtos (<= 10 min) e Links Oficiais -->
+      <div class="space-y-3">
+        <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+          <span>🎬</span> Playlist Curada (Vídeos de 3 a 10 min + Simuladores Oficiais)
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="videos-grid"></div>
+      </div>
+
+      <!-- Bloco de Fundamentos Teóricos & Exemplares -->
+      <div class="space-y-3 pt-2">
+        <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+          <span>📖</span> Fundamentos &amp; Exemplares da Prova (Leitura Direta)
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="fundamentals-grid"></div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ABA 4: QUIZ ESTILO PROVA COM FUNDAMENTOS E DIAGNÓSTICO              -->
+    <!-- =================================================================== -->
+    <section id="section-quiz" class="tab-section hidden animate-tab space-y-6">
+      
+      <!-- Cabeçalho e Seletor de Matéria do Quiz -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-extrabold">Questionário Estilo Prova Final</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Questões baseadas nos slides do Prof. Valiante, Nanocurso de Linux, Filius e Cloud/Docker</p>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="setQuizTopic('todos')" data-qtopic="todos" class="qtopic-btn active px-3 py-1.5 rounded-lg text-xs font-bold">Todas (24)</button>
+            <button onclick="setQuizTopic('arquitetura')" data-qtopic="arquitetura" class="qtopic-btn px-3 py-1.5 rounded-lg text-xs font-bold">Arquitetura</button>
+            <button onclick="setQuizTopic('so')" data-qtopic="so" class="qtopic-btn px-3 py-1.5 rounded-lg text-xs font-bold">SO &amp; Linux</button>
+            <button onclick="setQuizTopic('redes')" data-qtopic="redes" class="qtopic-btn px-3 py-1.5 rounded-lg text-xs font-bold">Redes</button>
+            <button onclick="setQuizTopic('nuvem')" data-qtopic="nuvem" class="qtopic-btn px-3 py-1.5 rounded-lg text-xs font-bold">Nuvem/Docker</button>
+          </div>
+        </div>
+
+        <!-- Placar em Tempo Real -->
+        <div class="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
+          <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60">
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Progresso</div>
+            <div id="quiz-counter" class="text-sm sm:text-base font-extrabold mt-0.5">1 / 24</div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">Acertos</div>
+            <div id="quiz-hits" class="text-sm sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">0</div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <div class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold">Aproveitamento</div>
+            <div id="quiz-accuracy" class="text-sm sm:text-base font-extrabold text-amber-600 dark:text-amber-400 mt-0.5">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card da Questão Atual -->
+      <div id="quiz-card" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-5">
+        <div class="flex items-center justify-between gap-2">
+          <span id="q-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">
+            Redes de Computadores
+          </span>
+          <span id="q-prob" class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
+            Probabilidade: Alta
+          </span>
+        </div>
+
+        <h3 id="q-question" class="text-base sm:text-lg font-bold leading-snug"></h3>
+
+        <!-- Bloco de código/cenário opcional -->
+        <pre id="q-code" class="hidden p-3.5 rounded-xl bg-slate-950 text-emerald-400 font-mono text-xs overflow-x-auto border border-slate-800"></pre>
+
+        <!-- Alternativas -->
+        <div id="q-options" class="space-y-2.5"></div>
+
+        <!-- Explicação Fundamentada (aparece após responder) -->
+        <div id="q-explanation" class="hidden rounded-2xl p-4 bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 space-y-2">
+          <div id="q-result-title" class="text-sm font-extrabold"></div>
+          <p id="q-fundamento" class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed"></p>
+          <div id="q-source" class="text-[11px] font-mono text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-700"></div>
+        </div>
+
+        <!-- Botões de Navegação do Quiz -->
+        <div class="flex items-center justify-between gap-3 pt-2">
+          <button onclick="prevQuizQuestion()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs sm:text-sm font-bold transition">
+            ← Anterior
+          </button>
+          <button onclick="resetQuiz()" class="px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition">
+            Reiniciar
+          </button>
+          <button onclick="nextQuizQuestion()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold transition shadow-md shadow-blue-600/20">
+            Próxima →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- ABA 5: JOGO DA MEMÓRIA CONCEITUAL (IDEAL PARA HOJE À NOITE)         -->
+    <!-- =================================================================== -->
+    <section id="section-memoria" class="tab-section hidden animate-tab space-y-6">
+      
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-extrabold">🧠 Jogo da Memória: Conceito ↔ Definição</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Combine cada protocolo, comando ou componente com sua função exata. Ótimo para fixar hoje à noite pelo celular!</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="memory-deck-select" onchange="initMemoryGame()" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold">
+              <option value="redes">Baralho 1: Redes, Portas &amp; Camadas</option>
+              <option value="arquitetura">Baralho 2: Arquitetura, RAID &amp; Memória</option>
+              <option value="so_linux">Baralho 3: SO, Kernel &amp; Comandos Linux</option>
+              <option value="nuvem">Baralho 4: Nuvem, VM &amp; Containers</option>
+            </select>
+            <button onclick="initMemoryGame()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition">
+              ↻ Embaralhar
+            </button>
+          </div>
+        </div>
+
+        <!-- Status da Partida -->
+        <div class="flex items-center justify-between gap-4 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs font-bold">
+          <div class="flex items-center gap-4">
+            <span>Pares: <strong id="mem-pairs" class="text-emerald-500">0 / 6</strong></span>
+            <span>Tentativas: <strong id="mem-moves" class="text-blue-500">0</strong></span>
+          </div>
+          <button onclick="peekMemoryCards()" class="px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition">
+            👁️ Espiar 3s (Modo Estudo)
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabuleiro de Cartas -->
+      <div id="memory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
+    </section>
+
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-4 px-4 text-center text-xs text-slate-500 dark:text-slate-400">
+    Baseado nos materiais oficiais de <strong>Infraestrutura de TI (Prof. Filippo Valiante Filho)</strong> • Tanenbaum, Kurose &amp; Ross, Stallings e Maziero.
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT: DADOS DO SEMESTRE, ESTATÍSTICAS, QUIZ E JOGO DA MEMÓRIA   -->
+  <!-- ===================================================================== -->
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. ESTADO GLOBAL E UTILITÁRIOS (TEMA, XP, TOAST, CLIPBOARD)
+    // -------------------------------------------------------------------------
+    let userXP = Number(localStorage.getItem('ti_exam_xp') || 0);
+    let completedTasks = JSON.parse(localStorage.getItem('ti_exam_tasks') || '[]');
+
+    function updateXP(points, reason) {
+      userXP += points;
+      localStorage.setItem('ti_exam_xp', userXP);
+      document.getElementById('xp-value').textContent = `${userXP} XP`;
+      if (reason) showToast(`+${points} XP • ${reason}`, 'success');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const colors = type === 'success'
+        ? 'bg-emerald-600 text-white border-emerald-400'
+        : 'bg-slate-800 text-white border-slate-600';
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border text-xs font-bold flex items-center justify-between gap-2 transition-all duration-300 ${colors}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 2600);
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+      renderD3Chart(); // Atualiza cores do gráfico D3
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(`section-${tabId}`).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        const active = btn.dataset.tab === tabId;
+        btn.classList.toggle('active', active);
+        if (active) {
+          btn.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
+          btn.classList.remove('text-slate-600', 'dark:text-slate-300', 'hover:bg-slate-100', 'dark:hover:bg-slate-800');
+        } else {
+          btn.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
+          btn.classList.add('text-slate-600', 'dark:text-slate-300', 'hover:bg-slate-100', 'dark:hover:bg-slate-800');
+        }
+      });
+
+      if (tabId === 'radar') renderD3Chart();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Cópia segura compatível com iFrames (usando execCommand)
+    function copyTextToClipboard(text, label) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast(`Copiado: ${label}`, 'success');
+      } catch (err) {
+        showToast('Não foi possível copiar automaticamente.', 'info');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. DADOS DA ANÁLISE ESTATÍSTICA & PROBABILIDADES
+    // -------------------------------------------------------------------------
+    const examStats = [
+      {
+        area: 'Redes de Computadores & Protocolos',
+        prob: 38,
+        slides: '221 slides + Filius',
+        color: '#3b82f6',
+        highlight: 'Modelo 5 camadas/OSI, Encapsulamento, DHCP/ARP/DNS/HTTP, IPv4/CIDR/NAT, TCP vs UDP.'
+      },
+      {
+        area: 'Sistemas Operacionais & Linux CLI',
+        prob: 27,
+        slides: '53 slides + Nanocurso',
+        color: '#10b981',
+        highlight: 'Kernel vs Userspace, System Calls, Processos/Threads, Paginação, comandos ip, ss, free, lsblk.'
+      },
+      {
+        area: 'Arquitetura de Computadores & RAID',
+        prob: 20,
+        slides: '86 slides',
+        color: '#f59e0b',
+        highlight: 'Hierarquia de Memória, Cache SRAM vs DRAM, DMA, Clock f=1/T, RAID 0/1/5/6/10, Flynn.'
+      },
+      {
+        area: 'Virtualização, Containers & Cloud',
+        prob: 15,
+        slides: 'Aulas Web + Ementa',
+        color: '#8b5cf6',
+        highlight: 'VM (Hypervisor) vs Container (Docker), JVM, IaaS/PaaS/SaaS, Multi-cloud e Cross-cloud.'
+      }
+    ];
+
+    const top10Topics = [
+      {
+        title: '1. Um Dia na Vida de uma Requisição Web',
+        chance: '96%',
+        tag: 'Redes',
+        summary: 'Ordem exata ao abrir um site: 1) DHCP (DORA) pega IP, máscara, gateway e DNS; 2) ARP descobre o MAC do roteador gateway; 3) DNS traduz o domínio em IP; 4) TCP faz o 3-Way Handshake (SYN, SYN-ACK, ACK); 5) HTTP GET solicita a página.'
+      },
+      {
+        title: '2. Máquinas Virtuais (VMs) vs. Containers (Docker)',
+        chance: '95%',
+        tag: 'Nuvem/Docker',
+        summary: 'VM virtualiza o hardware via Hypervisor e roda um Sistema Operacional completo (Guest OS + Kernel próprio = mais pesada). Container virtualiza no nível de SO, compartilhando o mesmo Kernel do host (isolamento em userspace = muito mais leve e rápido).'
+      },
+      {
+        title: '3. Camadas TCP/IP, PDUs e Equipamentos',
+        chance: '94%',
+        tag: 'Redes',
+        summary: 'Aplicação (Mensagem - HTTP/DNS) → Transporte (Segmento - TCP/UDP, portas) → Rede (Pacote/Datagrama - IP, Roteador) → Enlace (Quadro/Frame - Ethernet/MAC, Switch) → Física (Bits - Hub, cabos, rádio).'
+      },
+      {
+        title: '4. Níveis de RAID (0, 1, 5, 6 e 10)',
+        chance: '92%',
+        tag: 'Arquitetura',
+        summary: 'RAID 0: Striping (máxima velocidade, ZERO redundância). RAID 1: Espelhamento (100% cópia, perda de 50% da capacidade). RAID 5: Paridade distribuída (mín. 3 discos, tolera 1 falha). RAID 6: Dupla paridade (tolera 2 falhas). RAID 10: Espelhamento + Striping.'
+      },
+      {
+        title: '5. Kernel, Userspace e System Calls',
+        chance: '90%',
+        tag: 'SO',
+        summary: 'Kernel roda em modo privilegiado (acesso direto ao hardware: CPU, memória, E/S). Aplicações rodam em Userspace (modo usuário) e pedem serviços ao Kernel via System Calls (padrão POSIX: open, read, fork), recebendo sinais de retorno.'
+      },
+      {
+        title: '6. Endereçamento IPv4 Privado (RFC 1918), CIDR e NAT',
+        chance: '89%',
+        tag: 'Redes',
+        summary: 'IPs privados não roteáveis na Internet: 10.0.0.0/8, 172.16.0.0/12 (172.16 a 172.31) e 192.168.0.0/16. Loopback: 127.0.0.0/8. Link-local (sem DHCP): 169.254.0.0/16. NAT traduz IPs privados da LAN para um IP público na WAN.'
+      },
+      {
+        title: '7. Comandos Modernos de Rede e Hardware no Linux',
+        chance: '88%',
+        tag: 'Linux CLI',
+        summary: 'ip addr (substitui ifconfig), ip route (rotas), ip neigh (tabela ARP), ss -tuanp (sockets TCP/UDP ativos, substitui netstat), lscpu (CPU/cores), free -ht (RAM/Swap), lsblk (discos/partições).'
+      },
+      {
+        title: '8. Processos, Threads e Estados de Execução',
+        chance: '86%',
+        tag: 'SO',
+        summary: 'Programa é passivo (no disco); Processo é ativo (na RAM, com PCB e PID). Estados: Pronto → Execução (CPU) → Espera/Bloqueado (aguardando E/S). Threads compartilham a memória do mesmo processo, mas têm execução independente.'
+      },
+      {
+        title: '9. Hierarquia de Memória, Cache e DMA',
+        chance: '85%',
+        tag: 'Arquitetura',
+        summary: 'Topo (mais rápida, cara, menor, volátil): Registradores → Cache (SRAM: L1, L2, L3) → Memória Principal (DRAM/RAM) → Secundária (SSD/HDD não volátil) → Fita LTO (backup). DMA permite transferência direta entre disco e RAM sem travar a CPU.'
+      },
+      {
+        title: '10. Cloud Computing: IaaS, PaaS, SaaS e Multi-Cloud',
+        chance: '83%',
+        tag: 'Nuvem/Docker',
+        summary: 'IaaS: você gerencia SO e apps (ex: AWS EC2, Azure VM). PaaS: você gerencia só o código/dados (ex: Azure App Service). SaaS: software pronto (ex: Gmail). Multi-cloud: usa múltiplos provedores (AWS + Azure) para evitar lock-in; Cross-cloud: integra cargas entre nuvens.'
+      }
+    ];
+
+    function renderRadarSection() {
+      // Barras de probabilidade
+      const barsContainer = document.getElementById('probability-bars');
+      barsContainer.innerHTML = examStats.map(item => `
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70">
+          <div class="flex items-center justify-between text-xs font-bold mb-1">
+            <span>${item.area}</span>
+            <span style="color: ${item.color}">${item.prob}% (${item.slides})</span>
+          </div>
+          <div class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mb-1.5">
+            <div class="h-full rounded-full" style="width: ${item.prob}%; background-color: ${item.color}"></div>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">${item.highlight}</p>
+        </div>
+      `).join('');
+
+      // Top 10 cards expansíveis
+      const topGrid = document.getElementById('top-topics-grid');
+      topGrid.innerHTML = top10Topics.map((t, idx) => `
+        <div onclick="toggleTopTopic(${idx})" class="cursor-pointer p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80 transition">
+          <div class="flex items-start justify-between gap-2">
+            <span class="text-xs sm:text-sm font-bold leading-snug">${t.title}</span>
+            <span class="shrink-0 px-2 py-0.5 rounded-md text-[11px] font-mono font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+              ${t.chance}
+            </span>
+          </div>
+          <div id="top-topic-body-${idx}" class="hidden mt-2.5 pt-2.5 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            ${t.summary}
+          </div>
+          <div class="mt-1.5 text-[11px] text-blue-600 dark:text-blue-400 font-semibold flex items-center justify-between">
+            <span>${t.tag}</span>
+            <span id="top-topic-arrow-${idx}">Ver resumo ▾</span>
+          </div>
+        </div>
+      `).join('');
+
+      renderD3Chart();
+    }
+
+    function toggleTopTopic(idx) {
+      const body = document.getElementById(`top-topic-body-${idx}`);
+      const arrow = document.getElementById(`top-topic-arrow-${idx}`);
+      const isHidden = body.classList.toggle('hidden');
+      arrow.textContent = isHidden ? 'Ver resumo ▾' : 'Ocultar ▴';
+    }
+
+    function renderD3Chart() {
+      const container = document.getElementById('d3-chart-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const width = container.clientWidth || 420;
+      const height = 150;
+      const margin = { top: 10, right: 40, bottom: 20, left: 10 };
+
+      const svg = d3.select(container)
+        .append('svg')
+        .attr('viewBox', `0 0 ${width} ${height}`)
+        .attr('class', 'w-full h-auto overflow-visible');
+
+      const x = d3.scaleLinear()
+        .domain([0, 45])
+        .range([margin.left, width - margin.right]);
+
+      const y = d3.scaleBand()
+        .domain(examStats.map(d => d.area.split('&')[0].trim()))
+        .range([margin.top, height - margin.bottom])
+        .padding(0.28);
+
+      svg.selectAll('rect')
+        .data(examStats)
+        .enter()
+        .append('rect')
+        .attr('x', x(0))
+        .attr('y', d => y(d.area.split('&')[0].trim()))
+        .attr('width', d => x(d.prob) - x(0))
+        .attr('height', y.bandwidth())
+        .attr('rx', 6)
+        .attr('fill', d => d.color);
+
+      svg.selectAll('text.label')
+        .data(examStats)
+        .enter()
+        .append('text')
+        .attr('x', d => x(d.prob) + 6)
+        .attr('y', d => y(d.area.split('&')[0].trim()) + y.bandwidth() / 2 + 4)
+        .text(d => `${d.prob}%`)
+        .attr('fill', isDark ? '#f8fafc' : '#0f172a')
+        .attr('font-size', '11px')
+        .attr('font-weight', '800')
+        .attr('font-family', 'JetBrains Mono, monospace');
+
+      svg.selectAll('text.name')
+        .data(examStats)
+        .enter()
+        .append('text')
+        .attr('x', x(0) + 8)
+        .attr('y', d => y(d.area.split('&')[0].trim()) + y.bandwidth() / 2 + 4)
+        .text(d => d.area.split('&')[0].trim())
+        .attr('fill', '#ffffff')
+        .attr('font-size', '11px')
+        .attr('font-weight', '700');
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. PLANO DE ESTUDO (HOJE LER -> AMANHÃ PAPEL -> SEGUNDA PROVA)
+    // -------------------------------------------------------------------------
+    const studyPhases = [
+      {
+        id: 'fase1',
+        day: 'HOJE À NOITE (Quinta-feira)',
+        badge: 'Sem Papel • Celular & Leitura',
+        badgeColor: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+        tasks: [
+          { id: 't1', text: 'Assistir à animação "Warriors of the Net" e ao vídeo curto de OSI x TCP/IP (9 min).' },
+          { id: 't2', text: 'Ler os 10 Tópicos Quase Certos na aba Radar (entender o fluxo DHCP → ARP → DNS → TCP → HTTP).' },
+          { id: 't3', text: 'Jogar 2 rodadas do Jogo da Memória (Baralho Redes e Baralho Arquitetura/RAID).' },
+          { id: 't4', text: 'Fazer 10 questões rápidas do Quiz antes de dormir para mapear o que você ainda erra.' }
+        ]
+      },
+      {
+        id: 'fase2',
+        day: 'AMANHÃ À TARDE (Sexta-feira)',
+        badge: 'Caneta & Papel • Escrita Ativa',
+        badgeColor: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+        tasks: [
+          { id: 't5', text: 'Folha 1 (Redes): Desenhar à mão a tabela das 5 camadas + PDUs + Portas + IPs Privados (RFC 1918).' },
+          { id: 't6', text: 'Folha 2 (Arquitetura): Desenhar a pirâmide de memória, fórmula f=1/T e a tabela comparativa RAID 0, 1, 5, 6 e 10.' },
+          { id: 't7', text: 'Folha 3 (SO + Docker): Desenhar o diagrama Kernel vs Userspace, estados do processo e VM vs Container.' },
+          { id: 't8', text: 'Folha 4 (Linux CLI): Escrever à mão os comandos modernos (ip addr, ip route, ip neigh, ss -tuanp, lscpu, free -ht, lsblk).' }
+        ]
+      },
+      {
+        id: 'fase3',
+        day: 'SÁBADO & DOMINGO',
+        badge: 'Simulado & Fixação',
+        badgeColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400',
+        tasks: [
+          { id: 't9', text: 'Completar todas as 24 questões do Quiz buscando acima de 85% de aproveitamento.' },
+          { id: 't10', text: 'Assistir aos vídeos curtos de RAID (9 min), Kernel (9 min) e IaaS/PaaS/SaaS (9 min).' },
+          { id: 't11', text: 'Tentar reproduzir em uma folha em branco, sem olhar, o passo a passo de uma requisição Web.' }
+        ]
+      },
+      {
+        id: 'fase4',
+        day: 'SEGUNDA-FEIRA (Dia da Prova)',
+        badge: 'Revisão Relâmpago (15 min)',
+        badgeColor: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+        tasks: [
+          { id: 't12', text: 'Reler apenas as 4 folhas escritas por você na sexta-feira (não abrir PDFs gigantes!).' },
+          { id: 't13', text: 'Revisar pegadinhas: KiB (2^10) vs KB (10^3), TCP (confiável) vs UDP (rápido), Switch (MAC) vs Roteador (IP).' }
+        ]
+      }
+    ];
+
+    const paperSheets = [
+      {
+        title: 'Folha A4 #1 • Tabela Mestre de Redes',
+        content: `CAMADAS (Top-Down) | PDU | PROTOCOLOS | EQUIPAMENTO
+5. Aplicação  | Mensagem | HTTP(80), HTTPS(443), DNS(53), SMTP(25), SSH(22) | Host
+4. Transporte | Segmento | TCP (3-way handshake: SYN, SYN-ACK, ACK) / UDP | Host
+3. Rede       | Pacote/Datagrama | IPv4 (32b), IPv6 (128b), ICMP (ping), NAT, DHCP | Roteador
+2. Enlace     | Quadro (Frame) | Ethernet (802.3), Wi-Fi (802.11), MAC (48b), ARP, VLAN | Switch
+1. Física     | Bits | Par trançado, Fibra óptica, Rádio, Satélite (GEO vs LEO) | Hub/Modem
+
+IPs PRIVADOS (RFC 1918): 10.0.0.0/8 | 172.16.0.0/12 | 192.168.0.0/16
+LOOPBACK: 127.0.0.1 | LINK-LOCAL (sem DHCP): 169.254.0.0/16`
+      },
+      {
+        title: 'Folha A4 #2 • Arquitetura & Níveis de RAID',
+        content: `HIERARQUIA DE MEMÓRIA (Mais rápida/cara/volátil -> Mais lenta/barata/permanente):
+Registradores -> Cache SRAM (L1, L2, L3) -> RAM (DRAM) -> SSD/HDD (Flash/Magnético) -> Fita LTO
+
+CLOCK: f = 1 / T (Ex: f = 2 GHz -> T = 0,5 ns) | DMA: Disco <-> RAM sem ocupar CPU.
+BINÁRIO vs DECIMAL: 1 KiB = 2^10 (1024 B) | 1 KB = 10^3 (1000 B)
+
+RAID:
+- RAID 0 (Striping): N discos | Máxima velocidade | 0 tolerância a falhas.
+- RAID 1 (Mirroring): 2N discos | Espelhamento 100% | Perde metade do espaço.
+- RAID 5 (Paridade Distribuída): N+1 (mín. 3) | Tolera 1 disco falhar.
+- RAID 6 (Dupla Paridade): N+2 (mín. 4) | Tolera 2 discos falharem.
+- RAID 10 (1+0): Espelha e divide | Alta performance + alta disponibilidade.`
+      },
+      {
+        title: 'Folha A4 #3 • SO, Processos, VM & Docker',
+        content: `ARQUITETURA DO SO:
+- Kernel (Modo Privilegiado): Gerencia CPU, Memória, E/S e Arquivos.
+- Userspace (Modo Usuário): Apps e utilitários -> pedem serviços via SYSTEM CALLS (POSIX).
+
+CICLO DE VIDA DO PROCESSO (PCB / PID / PPID):
+Criação -> PRONTO (fila) <-> EXECUÇÃO (CPU, fatia de tempo = quantum) -> ESPERA/BLOQUEADO (E/S) -> Término.
+Thread: Linha de execução dentro do processo (compartilha memória do processo).
+Memória Virtual: Paginação divide em Page (virtual) e Frame (física), traduzidos pela MMU.
+
+VIRTUALIZAÇÃO vs CONTAINERS vs CLOUD:
+- VM: Hypervisor emula hardware + cada VM tem SO completo (pesada).
+- Container (Docker): Compartilha Kernel do host + isola processos (leve/rápido).
+- Cloud: IaaS (EC2/VM), PaaS (App Engine), SaaS (Gmail). Multi-cloud (vários provedores).`
+      },
+      {
+        title: 'Folha A4 #4 • Comandos Linux (Nanocurso Prof. Valiante)',
+        content: `REDE MODERNA (iproute2):
+- ip addr (ou ip a) -> Mostra IPs e interfaces (substitui ifconfig)
+- ip route -> Mostra tabela de roteamento e gateway padrão (substitui route)
+- ip neigh -> Mostra tabela ARP: IP <-> MAC (substitui arp)
+- ip link set eth0 up/down -> Ativa ou desativa interface
+- ss -tuanp -> Lista sockets TCP/UDP abertos e portas (substitui netstat)
+- ping / tracepath / mtr -> Diagnóstico ICMP e rota
+- nslookup / resolvectl status -> Consulta DNS (/etc/hosts e /etc/resolv.conf)
+
+HARDWARE & SISTEMA:
+- lscpu / lstopo -> Arquitetura, cores e cache | free -ht -> RAM e Swap
+- lsblk / df -hT -> Discos, partições e sistema de arquivos (EXT4, NTFS)
+- sudo -> Executa comando como root (superusuário) com log`
+      }
+    ];
+
+    function renderPlanSection() {
+      const container = document.getElementById('study-phases-container');
+      container.innerHTML = studyPhases.map(phase => `
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <h3 class="text-sm sm:text-base font-extrabold">${phase.day}</h3>
+              <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold ${phase.badgeColor}">${phase.badge}</span>
+            </div>
+            <div class="space-y-2.5">
+              ${phase.tasks.map(task => {
+                const checked = completedTasks.includes(task.id);
+                return `
+                  <label class="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition border border-transparent ${checked ? 'opacity-65' : ''}">
+                    <input type="checkbox" ${checked ? 'checked' : ''} onchange="togglePlanTask('${task.id}')" class="mt-0.5 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 shrink-0" />
+                    <span class="text-xs leading-relaxed ${checked ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-200'}">${task.text}</span>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Fichas de papel
+      const sheetsContainer = document.getElementById('paper-sheets-container');
+      sheetsContainer.innerHTML = paperSheets.map((sheet, i) => `
+        <div class="rounded-2xl bg-amber-50/70 dark:bg-slate-800/80 border border-amber-200/80 dark:border-slate-700 p-4 flex flex-col justify-between gap-3">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <h4 class="text-xs sm:text-sm font-extrabold text-amber-900 dark:text-amber-300">${sheet.title}</h4>
+              <button onclick="copyPaperSheet(${i})" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 dark:text-amber-300 text-[11px] font-bold transition shrink-0">
+                📋 Copiar
+              </button>
+            </div>
+            <pre class="text-[11px] font-mono leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-wrap bg-white/80 dark:bg-slate-950/70 p-3 rounded-xl border border-amber-200/50 dark:border-slate-800 overflow-x-auto">${sheet.content}</pre>
+          </div>
+        </div>
+      `).join('');
+
+      updatePlanProgressBar();
+    }
+
+    function togglePlanTask(taskId) {
+      const idx = completedTasks.indexOf(taskId);
+      if (idx === -1) {
+        completedTasks.push(taskId);
+        updateXP(15, 'Etapa de estudo concluída!');
+      } else {
+        completedTasks.splice(idx, 1);
+      }
+      localStorage.setItem('ti_exam_tasks', JSON.stringify(completedTasks));
+      renderPlanSection();
+    }
+
+    function updatePlanProgressBar() {
+      const total = studyPhases.reduce((acc, p) => acc + p.tasks.length, 0);
+      const pct = Math.round((completedTasks.length / total) * 100);
+      document.getElementById('plan-progress-text').textContent = `${pct}% concluído (${completedTasks.length}/${total})`;
+      document.getElementById('plan-progress-bar').style.width = `${pct}%`;
+    }
+
+    function copyPaperSheet(index) {
+      copyTextToClipboard(paperSheets[index].content, paperSheets[index].title);
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. VIDEOAULAS CURTAS (<= 10 MIN) & FUNDAMENTOS VISUAIS
+    // -------------------------------------------------------------------------
+    const videoLessons = [
+      {
+        topic: 'redes',
+        badge: 'Redes • Clássico Oficial',
+        duration: '~10 min',
+        title: 'Warriors of the Net (Viagem dos Pacotes)',
+        desc: 'Indicado no material da disciplina! Mostra visualmente pacotes IP, TCP, Switch, Roteador, Proxy e Firewall em ação.',
+        url: 'https://www.warriorsofthe.net/'
+      },
+      {
+        topic: 'redes',
+        badge: 'Redes • Aula Curta',
+        duration: '09:37',
+        title: 'Modelo OSI x TCP/IP: O que cai na prova',
+        desc: 'Comparação direta entre as camadas OSI e TCP/IP com foco em resolução de questões e protocolos de cada camada.',
+        url: 'https://www.youtube.com/watch?v=c5vfwNBbl4g'
+      },
+      {
+        topic: 'redes',
+        badge: 'Redes • Dispositivos',
+        duration: '09:20',
+        title: 'Como as camadas TCP/IP atuam nos dispositivos',
+        desc: 'Entenda na prática o papel de Hosts, Switches (Camada 2) e Roteadores (Camada 3) no encapsulamento.',
+        url: 'https://www.youtube.com/watch?v=rsl_-ndhm3s'
+      },
+      {
+        topic: 'arquitetura',
+        badge: 'Arquitetura • Memória',
+        duration: '06:59',
+        title: 'Memórias RAM, ROM e Cache (Hierarquia)',
+        desc: 'Revisão rápida da pirâmide de memória, volatilidade, SRAM vs DRAM e desempenho próximo à CPU.',
+        url: 'https://www.youtube.com/watch?v=71WrW_ymTpk'
+      },
+      {
+        topic: 'arquitetura',
+        badge: 'Arquitetura • RAID',
+        duration: '09:18',
+        title: 'RAID 0, 1, 5 e 10 Explicados Sem Enrolação',
+        desc: 'Visualização clara de striping, espelhamento e paridade distribuída para responder qualquer tabela de RAID.',
+        url: 'https://www.youtube.com/watch?v=iq_moExtBnk'
+      },
+      {
+        topic: 'so',
+        badge: 'Sist. Operacionais',
+        duration: '09:23',
+        title: 'Como o Sistema Operacional Funciona (Kernel)',
+        desc: 'O papel do Kernel como intermediário entre aplicações e hardware, modo privilegiado e gerência de recursos.',
+        url: 'https://www.youtube.com/watch?v=U_IQbQMuv1w'
+      },
+      {
+        topic: 'nuvem',
+        badge: 'Cloud Computing',
+        duration: '09:41',
+        title: 'IaaS, PaaS e SaaS na Computação em Nuvem',
+        desc: 'Diferença de responsabilidades entre infraestrutura, plataforma e software como serviço na nuvem.',
+        url: 'https://www.youtube.com/watch?v=5czsMlRc7Wk'
+      },
+      {
+        topic: 'nuvem',
+        badge: 'Virtualização & Docker',
+        duration: '03:06 + Aula Prof.',
+        title: 'Containers vs Máquinas Virtuais (VMs)',
+        desc: 'Comparação rápida em 3 minutos + link direto para o tutorial de Docker e Virtualização do Prof. Valiante.',
+        url: 'https://www.youtube.com/watch?v=ku1QIJW7e1A',
+        extraUrl: 'https://prof.valiante.info/aulas/arquitetura-de-computadores/m%C3%A1quinas-virtuais-e-containers'
+      },
+      {
+        topic: 'redes',
+        badge: 'Material Extra • Link Enviado',
+        duration: 'Vídeo Complementar',
+        title: 'Vídeo Complementar de Apoio da Disciplina',
+        desc: 'Link de estudo complementar anexado no seu roteiro de revisão para reforçar os conceitos da matéria.',
+        url: 'https://www.youtube.com/watch?v=cwxx2c2jScE',
+        extraUrl: 'https://prof.valiante.info/aulas/computa%C3%A7%C3%A3o-em-nuvem-iot-ambientes-inteligentes'
+      }
+    ];
+
+    const fundamentalsData = [
+      {
+        topic: 'arquitetura',
+        title: 'CPU, Barramentos, Clock e DMA',
+        bullets: [
+          '<strong>Componentes da CPU:</strong> ULA (cálculos lógicos/aritméticos), Unidade de Controle (sincronismo e busca/execução) e Registradores (memória interna ultrarrápida).',
+          '<strong>Barramentos:</strong> Dados (bidirecional), Endereços (unidirecional, define capacidade de endereçamento) e Controle (Read/Write, Clock, IRQ, Reset).',
+          '<strong>Clock:</strong> Frequência <code>f = 1 / T</code>. Se f = 2 GHz, cada ciclo dura 0,5 nanossegundos.',
+          '<strong>DMA (Direct Memory Access):</strong> Permite que discos/placas transfiram grandes blocos direto para a RAM sem ocupar a CPU a cada byte.'
+        ]
+      },
+      {
+        topic: 'arquitetura',
+        title: 'Evolução das CPUs & Taxonomia de Flynn',
+        bullets: [
+          '<strong>Pipeline:</strong> Execução em linha de montagem (busca, decodifica, executa) aumentando a vazão de instruções.',
+          '<strong>RISC vs CISC:</strong> RISC tem instruções simples e fixas (foco no hardware/pipeline, ex: ARM, RISC-V); CISC tem instruções complexas (ex: x86).',
+          '<strong>Multicore (SMP) vs Heterogêneo vs DSA:</strong> SMP = múltiplos núcleos iguais compartilhando RAM; Heterogêneo = CPU + GPU; DSA = aceleradores específicos (ex: TPU para IA).',
+          '<strong>Flynn:</strong> SISD (1 fluxo), SIMD (1 instrução em vários dados — GPUs/vetores), MIMD (múltiplas instruções e dados — Multicore/Clusters).'
+        ]
+      },
+      {
+        topic: 'so',
+        title: 'Kernel, Userspace, Interrupções e Memória Virtual',
+        bullets: [
+          '<strong>Kernel vs Userspace:</strong> Kernel roda em modo supervisor/privilegiado. Apps em userspace usam <em>System Calls</em> (POSIX) para pedir acesso a disco/rede.',
+          '<strong>Interrupções vs Exceções:</strong> Interrupção vem do hardware (Timer para preempção/multitarefa, E/S); Exceção vem de erro no software (divisão por zero).',
+          '<strong>Escalonamento:</strong> Dispatcher faz a troca de contexto; Scheduler escolhe o próximo processo/thread usando fatias de tempo (<em>quantum</em>).',
+          '<strong>Memória Virtual (Paginação):</strong> Divide memória lógica em <em>Pages</em> e física em <em>Frames</em> (tamanho fixo), mapeados pela MMU.'
+        ]
+      },
+      {
+        topic: 'redes',
+        title: 'Modelo de 5 Camadas, Encapsulamento e Transporte',
+        bullets: [
+          '<strong>Encapsulamento:</strong> Dados (Aplicação) → ganha cabeçalho TCP/UDP = <strong>Segmento</strong> → ganha cabeçalho IP = <strong>Datagrama/Pacote</strong> → ganha cabeçalho/trailer MAC = <strong>Quadro</strong> → <strong>Bits</strong>.',
+          '<strong>TCP vs UDP:</strong> TCP é orientado à conexão (3-way handshake), confiável, em ordem, com controle de fluxo e congestionamento. UDP é sem conexão, rápido, "melhor esforço" (usado em DNS, streaming, VoIP, jogos).',
+          '<strong>Portas Clássicas:</strong> 20/21 (FTP), 22 (SSH), 25 (SMTP), 53 (DNS), 80 (HTTP), 110 (POP3), 143 (IMAP), 443 (HTTPS).'
+        ]
+      },
+      {
+        topic: 'redes',
+        title: 'Camada de Rede (IP, Roteamento, DHCP, NAT) e Enlace',
+        bullets: [
+          '<strong>Roteamento:</strong> Intra-AS (dentro do mesmo Sistema Autônomo: RIP e OSPF) vs Inter-AS (entre provedores na Internet: BGP).',
+          '<strong>DHCP (DORA):</strong> Discover (broadcast) → Offer → Request → ACK. Entrega IP, máscara, gateway padrão e servidor DNS.',
+          '<strong>ARP:</strong> Resolve IP conhecido → endereço MAC desconhecido na rede local via quadro Ethernet broadcast (FF:FF:FF:FF:FF:FF).',
+          '<strong>Switches & VLANs (802.1Q):</strong> Switch aprende endereços MAC na tabela de comutação; VLAN segmenta domínios de broadcast logicamente.'
+        ]
+      },
+      {
+        topic: 'nuvem',
+        title: 'Virtualização, Containers (Docker) & Cloud',
+        bullets: [
+          '<strong>Hypervisor Tipo 1 (Bare-metal):</strong> Roda direto no hardware (VMware ESXi, Hyper-V, KVM). <strong>Tipo 2:</strong> Roda sobre um SO hospedeiro (VirtualBox).',
+          '<strong>Docker / Containers:</strong> Empacota app + bibliotecas isoladas, mas <strong>compartilha o Kernel do SO host</strong> (inicializa em segundos, ocupa MBs em vez de GBs).',
+          '<strong>Multi-cloud vs Cross-cloud:</strong> Multi-cloud usa serviços de diferentes nuvens (ex: AWS + Azure); Cross-cloud integra/orquestra workloads comunicando-se entre nuvens distintas.'
+        ]
+      },
+      {
+        topic: 'linux',
+        title: 'Guia de Bolso: Comandos Linux (Nanocurso Prof. Valiante)',
+        bullets: [
+          '<strong>Rede (iproute2):</strong> <code>ip addr</code> (IPs), <code>ip route</code> (rotas), <code>ip neigh</code> (ARP), <code>ip link</code> (interfaces). Substituem os antigos <code>ifconfig/route/arp</code>.',
+          '<strong>Sockets & Portas:</strong> <code>ss -tuanp</code> (TCP, UDP, All, Numérico, Processos) ou <code>lsof -i TCP:80</code>.',
+          '<strong>DNS & Arquivos:</strong> <code>nslookup</code>, <code>resolvectl status</code>; arquivo local <code>/etc/hosts</code> tem prioridade antes do DNS configurado em <code>/etc/resolv.conf</code>.',
+          '<strong>Configuração & Firewall:</strong> Netplan no Ubuntu (<code>/etc/netplan/*.yaml</code> + <code>sudo netplan apply</code>); Firewall no kernel é <code>netfilter</code> (manipulado via <code>nftables</code>, <code>ufw</code> ou <code>firewall-cmd</code>).'
+        ]
+      }
+    ];
+
+    let activeFilter = 'todos';
+
+    function filterContent(topic) {
+      activeFilter = topic;
+      document.querySelectorAll('.filter-chip').forEach(btn => {
+        const isMatch = btn.dataset.filter === topic;
+        btn.classList.toggle('active', isMatch);
+        if (isMatch) {
+          btn.classList.add('bg-blue-600', 'text-white');
+          btn.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+        } else {
+          btn.classList.remove('bg-blue-600', 'text-white');
+          btn.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+        }
+      });
+      renderFundamentalsAndVideos();
+    }
+
+    function renderFundamentalsAndVideos() {
+      const filteredVideos = activeFilter === 'todos'
+        ? videoLessons
+        : videoLessons.filter(v => v.topic === activeFilter);
+
+      document.getElementById('videos-grid').innerHTML = filteredVideos.map(v => `
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between gap-4">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">${v.badge}</span>
+              <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">⏱ ${v.duration}</span>
+            </div>
+            <h4 class="text-sm font-extrabold leading-snug mb-1.5">${v.title}</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">${v.desc}</p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <a href="${v.url}" target="_blank" rel="noopener noreferrer" onclick="updateXP(5, 'Videoaula aberta!')" class="w-full py-2.5 px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold text-center transition flex items-center justify-center gap-1.5">
+              <span>▶</span> Assistir Agora
+            </a>
+            ${v.extraUrl ? `
+              <a href="${v.extraUrl}" target="_blank" rel="noopener noreferrer" class="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-center transition">
+                🔗 Material do Prof. Valiante
+              </a>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      const filteredFunds = activeFilter === 'todos'
+        ? fundamentalsData
+        : fundamentalsData.filter(f => f.topic === activeFilter);
+
+      document.getElementById('fundamentals-grid').innerHTML = filteredFunds.map(f => `
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+          <h4 class="text-sm sm:text-base font-extrabold text-blue-600 dark:text-blue-400">${f.title}</h4>
+          <ul class="space-y-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+            ${f.bullets.map(b => `<li class="flex items-start gap-2"><span class="text-blue-500 font-bold mt-0.5">•</span><span>${b}</span></li>`).join('')}
+          </ul>
+        </div>
+      `).join('');
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. BANCO DE 24 QUESTÕES ESTILO PROVA (COM FUNDAMENTOS TEÓRICOS)
+    // -------------------------------------------------------------------------
+    const quizDatabase = [
+      {
+        topic: 'redes',
+        badge: 'Redes • Síntese Ponta a Ponta',
+        prob: 'Probabilidade: 96%',
+        question: 'Um notebook recém-conectado via cabo Ethernet a uma rede corporativa não possui endereço IP configurado e o usuário digita www.senac.br no navegador. Qual é a sequência cronológica correta dos protocolos acionados antes da página carregar?',
+        options: [
+          'DNS → ARP → DHCP → HTTP → TCP',
+          'DHCP → ARP → DNS → TCP (3-Way Handshake) → HTTP',
+          'ARP → TCP → DHCP → DNS → HTTP',
+          'HTTP → DNS → DHCP → ARP → UDP'
+        ],
+        answer: 1,
+        fundamento: 'Primeiro o host precisa obter seu próprio IP, máscara, gateway e DNS via DHCP (DORA). Em seguida, usa ARP em broadcast para descobrir o MAC do roteador gateway. Só então envia a consulta DNS para descobrir o IP do servidor Web, abre a conexão TCP (SYN, SYN-ACK, ACK) e envia a requisição HTTP GET.',
+        source: 'Slides Redes de Computadores (Págs. 187–194: "Um dia na vida de uma solicitação Web")'
+      },
+      {
+        topic: 'nuvem',
+        badge: 'Virtualização & Containers',
+        prob: 'Probabilidade: 95%',
+        question: 'Qual é a principal diferença arquitetural entre executar uma aplicação em uma Máquina Virtual (VM) tradicional e executá-la em um Container Docker?',
+        options: [
+          'O Container exige um Hypervisor Tipo 1 exclusivo para emular BIOS e placa de rede virtual, enquanto a VM compartilha o Kernel do host.',
+          'A Máquina Virtual virtualiza o hardware e executa um Sistema Operacional completo (com seu próprio Kernel), enquanto o Container compartilha o Kernel do SO hospedeiro, isolando processos em userspace.',
+          'Containers só funcionam em nuvem pública (AWS/Azure), enquanto VMs só funcionam on-premise.',
+          'Não há diferença arquitetural; Docker é apenas um nome comercial para máquinas virtuais Linux.'
+        ],
+        answer: 1,
+        fundamento: 'VMs virtualizam no nível de hardware (via Hypervisor) e carregam um Guest OS inteiro, consumindo mais RAM e tempo de boot. Containers isolam aplicações e dependências no nível de sistema operacional, compartilhando o mesmo Kernel do hospedeiro.',
+        source: 'Material Blackboard: Máquinas Virtuais e Containers (Prof. Filippo Valiante Filho)'
+      },
+      {
+        topic: 'arquitetura',
+        badge: 'Arquitetura • Níveis de RAID',
+        prob: 'Probabilidade: 92%',
+        question: 'Um servidor de banco de dados precisa de alta tolerância a falhas e bom desempenho de leitura, suportando a falha simultânea de até DOIS discos rígidos sem perda de dados, utilizando paridade dupla distribuída. Qual nível de RAID atende a esse requisito?',
+        options: [
+          'RAID 0 (Striping)',
+          'RAID 1 (Espelhamento simples com 2 discos)',
+          'RAID 5 (Paridade simples distribuída)',
+          'RAID 6 (Paridade dual distribuída)'
+        ],
+        answer: 3,
+        fundamento: 'O RAID 0 não tem redundância (se 1 disco falha, perde tudo). O RAID 5 usa paridade simples (N+1) e tolera apenas 1 falha. O RAID 6 utiliza dois blocos de paridade distribuídos (N+2), permitindo que até 2 discos falhem simultaneamente sem perda de dados.',
+        source: 'Slides Arquitetura de Computadores (Págs. 41–47: Tabela 6.3 e 6.4 Stallings)'
+      },
+      {
+        topic: 'so',
+        badge: 'Sist. Operacionais • Kernel & System Calls',
+        prob: 'Probabilidade: 90%',
+        question: 'Quando um programa em execução no espaço de usuário (userspace) precisa ler um arquivo no disco rígido, por que ele não acessa o controlador SATA/NVMe diretamente?',
+        options: [
+          'Porque o acesso direto ao hardware é restrito ao Kernel (modo privilegiado); a aplicação deve solicitar o serviço por meio de uma System Call (padrão P
